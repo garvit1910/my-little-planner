@@ -5,7 +5,8 @@ const STORAGE_KEY = 'task-planner-tasks';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
-const loadTasks = (): Task[] => {
+const getInitialTasks = (): Task[] => {
+  if (typeof window === 'undefined') return [];
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -23,12 +24,12 @@ const loadTasks = (): Task[] => {
 };
 
 export function useTasks() {
-  const [tasks, setTasks] = useState<Task[]>(loadTasks);
+  const [tasks, setTasks] = useState<Task[]>(() => getInitialTasks());
+  const [sortBy, setSortBy] = useState<SortBy>('dueDate');
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
   }, [tasks]);
-  const [sortBy, setSortBy] = useState<SortBy>('dueDate');
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
     const newTask: Task = {
