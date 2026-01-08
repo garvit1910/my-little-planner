@@ -1,40 +1,33 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Task, Priority, SortBy } from '@/types/task';
+
+const STORAGE_KEY = 'task-planner-tasks';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
-const initialTasks: Task[] = [
-  {
-    id: generateId(),
-    title: 'Review project proposal',
-    description: 'Go through the Q1 project proposal and provide feedback',
-    dueDate: new Date(Date.now() + 86400000),
-    priority: 'high',
-    completed: false,
-    createdAt: new Date(),
-  },
-  {
-    id: generateId(),
-    title: 'Team standup meeting',
-    description: 'Daily sync with the development team',
-    dueDate: new Date(),
-    priority: 'medium',
-    completed: false,
-    createdAt: new Date(),
-  },
-  {
-    id: generateId(),
-    title: 'Update documentation',
-    description: 'Add new API endpoints to the docs',
-    dueDate: new Date(Date.now() + 172800000),
-    priority: 'low',
-    completed: true,
-    createdAt: new Date(),
-  },
-];
+const loadTasks = (): Task[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.map((task: Task) => ({
+        ...task,
+        dueDate: new Date(task.dueDate),
+        createdAt: new Date(task.createdAt),
+      }));
+    }
+  } catch (error) {
+    console.error('Failed to load tasks from localStorage:', error);
+  }
+  return [];
+};
 
 export function useTasks() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(loadTasks);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }, [tasks]);
   const [sortBy, setSortBy] = useState<SortBy>('dueDate');
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
