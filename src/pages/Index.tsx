@@ -15,6 +15,7 @@ const Index = () => {
     addTask,
     updateTask,
     deleteTask,
+    deleteTaskSeries,
     toggleComplete,
     sortBy,
     setSortBy,
@@ -73,6 +74,7 @@ const Index = () => {
               onToggle={toggleComplete}
               onUpdate={updateTask}
               onDelete={deleteTask}
+              onDeleteSeries={deleteTaskSeries}
               sortBy={sortBy}
               onSortChange={setSortBy}
             />
@@ -83,6 +85,7 @@ const Index = () => {
               onToggle={toggleComplete}
               onUpdate={updateTask}
               onDelete={deleteTask}
+              onDeleteSeries={deleteTaskSeries}
             />
           )}
         </div>
