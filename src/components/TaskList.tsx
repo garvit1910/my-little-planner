@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ArrowUpDown, Calendar, Flag, Clock, Repeat, Filter } from 'lucide-react';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { EmptyState } from './EmptyState';
+import { FadeIn } from './animations';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,111 +67,126 @@ export function TaskList({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Sort by:</span>
-          <div className="flex gap-1">
-            {sortOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={sortBy === option.value ? 'secondary' : 'ghost'}
-                size="sm"
-                className={cn(
-                  'gap-1.5 h-8',
-                  sortBy === option.value && 'bg-secondary'
-                )}
-                onClick={() => onSortChange(option.value)}
-              >
-                {option.icon}
-                {option.label}
-              </Button>
-            ))}
+      <FadeIn>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Sort by:</span>
+            <div className="flex gap-1">
+              {sortOptions.map((option) => (
+                <motion.div key={option.value} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    variant={sortBy === option.value ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className={cn(
+                      'gap-1.5 h-8 transition-all',
+                      sortBy === option.value && 'bg-secondary shadow-soft'
+                    )}
+                    onClick={() => onSortChange(option.value)}
+                  >
+                    {option.icon}
+                    {option.label}
+                  </Button>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 h-8">
-              <Filter className="h-4 w-4" />
-              {filter === 'all' ? 'All Tasks' : 
-               filter === 'recurring' ? 'Recurring' : 
-               filter === 'one-time' ? 'One-time' : 'Overdue'}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setFilter('all')}>
-              All Tasks
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setFilter('recurring')}>
-              <Repeat className="h-4 w-4 mr-2" />
-              Recurring Only
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setFilter('one-time')}>
-              One-time Only
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setFilter('overdue')} className="text-destructive">
-              Overdue Tasks
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 shadow-soft hover:shadow-card transition-shadow">
+                <Filter className="h-4 w-4" />
+                {filter === 'all' ? 'All Tasks' : 
+                 filter === 'recurring' ? 'Recurring' : 
+                 filter === 'one-time' ? 'One-time' : 'Overdue'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="animate-scale-in">
+              <DropdownMenuItem onClick={() => setFilter('all')}>
+                All Tasks
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setFilter('recurring')}>
+                <Repeat className="h-4 w-4 mr-2" />
+                Recurring Only
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('one-time')}>
+                One-time Only
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('overdue')} className="text-destructive">
+                Overdue Tasks
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </FadeIn>
 
       {incompleteTasks.length === 0 && completedTasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-            <Calendar className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-medium text-foreground">
-            {filter === 'all' ? 'No tasks yet' : 'No matching tasks'}
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            {filter === 'all' 
-              ? 'Create your first task to get started'
-              : 'Try changing the filter to see more tasks'}
-          </p>
-        </div>
+        <EmptyState type={filter === 'all' ? 'tasks' : 'filtered'} />
       ) : (
         <>
           {incompleteTasks.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            <motion.div 
+              className="space-y-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.h2 
+                className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+              >
                 To Do ({incompleteTasks.length})
-              </h2>
+              </motion.h2>
               <div className="space-y-2">
-                {incompleteTasks.map((task) => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onToggle={onToggle}
-                    onUpdate={onUpdate}
-                    onDelete={onDelete}
-                    onDeleteSeries={onDeleteSeries}
-                  />
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {incompleteTasks.map((task, index) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={onToggle}
+                      onUpdate={onUpdate}
+                      onDelete={onDelete}
+                      onDeleteSeries={onDeleteSeries}
+                      index={index}
+                    />
+                  ))}
+                </AnimatePresence>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {completedTasks.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            <motion.div 
+              className="space-y-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <motion.h2 
+                className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+              >
                 Completed ({completedTasks.length})
-              </h2>
+              </motion.h2>
               <div className="space-y-2">
-                {completedTasks.map((task) => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onToggle={onToggle}
-                    onUpdate={onUpdate}
-                    onDelete={onDelete}
-                    onDeleteSeries={onDeleteSeries}
-                  />
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {completedTasks.map((task, index) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={onToggle}
+                      onUpdate={onUpdate}
+                      onDelete={onDelete}
+                      onDeleteSeries={onDeleteSeries}
+                      index={index}
+                    />
+                  ))}
+                </AnimatePresence>
               </div>
-            </div>
+            </motion.div>
           )}
         </>
       )}
