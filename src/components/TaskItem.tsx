@@ -182,7 +182,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, onDeleteSeries, c
       }}
       className={cn(
         'group relative flex items-start gap-4 p-4 rounded-xl border bg-card transition-all duration-300',
-        'hover:shadow-card hover:-translate-y-0.5',
+        'hover:shadow-card hover:-translate-y-0.5 pulse-glow',
         styles.glow,
         task.completed && 'opacity-60',
         isOverdue && 'border-destructive/30 bg-destructive/5',
