@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ViewMode } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { AppSidebar } from '@/components/AppSidebar';
 import { MobileNav } from '@/components/MobileNav';
 import { TaskForm } from '@/components/TaskForm';
@@ -10,11 +12,15 @@ import { TaskList } from '@/components/TaskList';
 import { CalendarView } from '@/components/CalendarView';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationBell } from '@/components/NotificationBell';
+import { NotificationSettings } from '@/components/NotificationSettings';
+import { NotificationPermissionBanner } from '@/components/NotificationPermissionBanner';
 import { AnimatedBackground, PageTransition } from '@/components/animations';
 
 const Index = () => {
   const [view, setView] = useState<ViewMode>('list');
   const [fabFormOpen, setFabFormOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const {
     tasks,
     addTask,
@@ -26,6 +32,34 @@ const Index = () => {
     setSortBy,
     getTasksForDate,
   } = useTasks();
+
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    clearAll,
+    deleteNotification,
+    snoozeNotification,
+  } = useNotifications(tasks);
+
+  const {
+    permissionStatus,
+    permissionRequested,
+    requestPermission,
+  } = useNotificationSettings();
+
+  // Listen for task completion from notifications
+  useEffect(() => {
+    const handleCompleteTask = (e: CustomEvent<{ taskId: string }>) => {
+      toggleComplete(e.detail.taskId);
+    };
+
+    window.addEventListener('taskflow:completeTask', handleCompleteTask as EventListener);
+    return () => {
+      window.removeEventListener('taskflow:completeTask', handleCompleteTask as EventListener);
+    };
+  }, [toggleComplete]);
 
   const taskCounts = {
     total: tasks.length,
@@ -64,6 +98,16 @@ const Index = () => {
             <span className="text-lg font-semibold text-gradient">TaskFlow</span>
           </div>
           <div className="flex items-center gap-2">
+            <NotificationBell
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onMarkAsRead={markAsRead}
+              onMarkAllAsRead={markAllAsRead}
+              onClearAll={clearAll}
+              onDelete={deleteNotification}
+              onSnooze={snoozeNotification}
+              onOpenSettings={() => setSettingsOpen(true)}
+            />
             <ThemeToggle />
           </div>
         </motion.header>
@@ -87,6 +131,16 @@ const Index = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <NotificationBell
+                notifications={notifications}
+                unreadCount={unreadCount}
+                onMarkAsRead={markAsRead}
+                onMarkAllAsRead={markAllAsRead}
+                onClearAll={clearAll}
+                onDelete={deleteNotification}
+                onSnooze={snoozeNotification}
+                onOpenSettings={() => setSettingsOpen(true)}
+              />
               <ThemeToggle />
               <TaskForm onSubmit={addTask} />
             </div>
@@ -134,6 +188,16 @@ const Index = () => {
           onClose={() => setFabFormOpen(false)}
         />
       </div>
+
+      {/* Notification Permission Banner */}
+      <NotificationPermissionBanner
+        permissionStatus={permissionStatus}
+        permissionRequested={permissionRequested}
+        onRequestPermission={requestPermission}
+      />
+
+      {/* Notification Settings Dialog */}
+      <NotificationSettings open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 };

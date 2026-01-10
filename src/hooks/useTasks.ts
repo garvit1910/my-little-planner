@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Task, Priority, SortBy, RecurrencePattern } from '@/types/task';
-import { addDays, addMonths, addWeeks, setHours, setMinutes, differenceInMinutes, isBefore } from 'date-fns';
+import { addDays, addMonths, addWeeks, setHours, setMinutes } from 'date-fns';
 
 const STORAGE_KEY = 'task-planner-tasks';
 
@@ -56,51 +56,11 @@ function calculateNextOccurrence(dueDate: Date, recurrence: RecurrencePattern): 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>(() => getInitialTasks());
   const [sortBy, setSortBy] = useState<SortBy>('dueDate');
-  const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set());
 
   // Save to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
   }, [tasks]);
-
-  // Request notification permission
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  // Check for upcoming tasks and notify
-  useEffect(() => {
-    const checkUpcomingTasks = () => {
-      if (!('Notification' in window) || Notification.permission !== 'granted') {
-        return;
-      }
-
-      const now = new Date();
-      tasks.forEach((task) => {
-        if (task.completed || task.allDay || !task.dueTime || notifiedTaskIds.has(task.id)) {
-          return;
-        }
-
-        const [hours, minutes] = task.dueTime.split(':').map(Number);
-        const taskDateTime = setMinutes(setHours(new Date(task.dueDate), hours), minutes);
-        const minutesUntil = differenceInMinutes(taskDateTime, now);
-
-        if (minutesUntil > 0 && minutesUntil <= 60 && !isBefore(taskDateTime, now)) {
-          new Notification(`Task Due Soon: ${task.title}`, {
-            body: `Due in ${minutesUntil} minute${minutesUntil !== 1 ? 's' : ''}`,
-            icon: '/favicon.ico',
-          });
-          setNotifiedTaskIds((prev) => new Set([...prev, task.id]));
-        }
-      });
-    };
-
-    checkUpcomingTasks();
-    const interval = setInterval(checkUpcomingTasks, 60000); // Check every minute
-    return () => clearInterval(interval);
-  }, [tasks, notifiedTaskIds]);
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
     const seriesId = task.recurrence && task.recurrence.type !== 'none' 
