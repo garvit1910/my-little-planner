@@ -26,24 +26,24 @@ interface TaskItemProps {
   index?: number;
 }
 
-const priorityStyles: Record<Priority, { bg: string; text: string; border: string; glow: string }> = {
+const priorityStyles: Record<Priority, { bg: string; text: string; border: string; pulseGlow: string }> = {
   high: {
     bg: 'bg-priority-high-bg',
     text: 'text-priority-high',
     border: 'border-priority-high/30',
-    glow: 'hover:shadow-[0_0_20px_hsl(0_85%_60%/0.2)]',
+    pulseGlow: 'pulse-glow-high',
   },
   medium: {
     bg: 'bg-priority-medium-bg',
     text: 'text-priority-medium',
     border: 'border-priority-medium/30',
-    glow: 'hover:shadow-[0_0_20px_hsl(38_95%_50%/0.2)]',
+    pulseGlow: 'pulse-glow-medium',
   },
   low: {
     bg: 'bg-priority-low-bg',
     text: 'text-priority-low',
     border: 'border-priority-low/30',
-    glow: 'hover:shadow-[0_0_20px_hsl(160_80%_42%/0.2)]',
+    pulseGlow: 'pulse-glow-low',
   },
 };
 
@@ -182,8 +182,8 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, onDeleteSeries, c
       }}
       className={cn(
         'group relative flex items-start gap-4 p-4 rounded-xl border bg-card transition-all duration-300',
-        'hover:shadow-card hover:-translate-y-0.5 pulse-glow',
-        styles.glow,
+        'hover:shadow-card hover:-translate-y-0.5',
+        styles.pulseGlow,
         task.completed && 'opacity-60',
         isOverdue && 'border-destructive/30 bg-destructive/5',
         isDueSoon && 'border-amber-500/30 bg-amber-500/5',
