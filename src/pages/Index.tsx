@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { CheckSquare } from 'lucide-react';
+import { CheckSquare, List, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ViewMode } from '@/types/task';
 import { useTasks } from '@/hooks/useTasks';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 import { MobileNav } from '@/components/MobileNav';
 import { TaskForm } from '@/components/TaskForm';
 import { TaskList } from '@/components/TaskList';
@@ -16,6 +16,7 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { NotificationPermissionBanner } from '@/components/NotificationPermissionBanner';
 import { AnimatedBackground, PageTransition } from '@/components/animations';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [view, setView] = useState<ViewMode>('list');
@@ -61,26 +62,10 @@ const Index = () => {
     };
   }, [toggleComplete]);
 
-  const taskCounts = {
-    total: tasks.length,
-    completed: tasks.filter((t) => t.completed).length,
-  };
-
   return (
-    <div className="flex min-h-screen bg-background relative">
-      <AnimatedBackground />
-      
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block">
-        <AppSidebar
-          currentView={view}
-          onViewChange={setView}
-          taskCounts={taskCounts}
-        />
-      </div>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+    <AppLayout>
+      <div className="relative min-h-screen bg-background">
+        <AnimatedBackground />
         {/* Mobile Header */}
         <motion.header 
           initial={{ y: -20, opacity: 0 }}
@@ -114,7 +99,7 @@ const Index = () => {
 
         <div className="max-w-4xl mx-auto px-4 py-6 md:px-8 md:py-10 pb-24 md:pb-10">
           {/* Desktop Header */}
-          <motion.div 
+          <motion.div
             className="hidden md:flex items-center justify-between mb-8"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -131,6 +116,25 @@ const Index = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              {/* View switcher */}
+              <div className="flex gap-2">
+                <Button
+                  variant={view === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setView('list')}
+                >
+                  <List className="h-4 w-4 mr-2" />
+                  List
+                </Button>
+                <Button
+                  variant={view === 'calendar' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setView('calendar')}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Calendar
+                </Button>
+              </div>
               <NotificationBell
                 notifications={notifications}
                 unreadCount={unreadCount}
@@ -141,7 +145,6 @@ const Index = () => {
                 onSnooze={snoozeNotification}
                 onOpenSettings={() => setSettingsOpen(true)}
               />
-              <ThemeToggle />
               <TaskForm onSubmit={addTask} />
             </div>
           </motion.div>
@@ -170,35 +173,35 @@ const Index = () => {
             )}
           </PageTransition>
         </div>
-      </main>
 
-      {/* Mobile Navigation */}
-      <MobileNav currentView={view} onViewChange={setView} />
+        {/* Mobile Navigation */}
+        <MobileNav currentView={view} onViewChange={setView} />
 
-      {/* Floating Action Button for Mobile */}
-      <div className="md:hidden">
-        <TaskForm 
-          onSubmit={addTask}
-          trigger={
-            <FloatingActionButton 
-              onClick={() => setFabFormOpen(true)} 
-              isOpen={fabFormOpen}
-            />
-          }
-          onClose={() => setFabFormOpen(false)}
+        {/* Floating Action Button for Mobile */}
+        <div className="md:hidden">
+          <TaskForm
+            onSubmit={addTask}
+            trigger={
+              <FloatingActionButton
+                onClick={() => setFabFormOpen(true)}
+                isOpen={fabFormOpen}
+              />
+            }
+            onClose={() => setFabFormOpen(false)}
+          />
+        </div>
+
+        {/* Notification Permission Banner */}
+        <NotificationPermissionBanner
+          permissionStatus={permissionStatus}
+          permissionRequested={permissionRequested}
+          onRequestPermission={requestPermission}
         />
+
+        {/* Notification Settings Dialog */}
+        <NotificationSettings open={settingsOpen} onOpenChange={setSettingsOpen} />
       </div>
-
-      {/* Notification Permission Banner */}
-      <NotificationPermissionBanner
-        permissionStatus={permissionStatus}
-        permissionRequested={permissionRequested}
-        onRequestPermission={requestPermission}
-      />
-
-      {/* Notification Settings Dialog */}
-      <NotificationSettings open={settingsOpen} onOpenChange={setSettingsOpen} />
-    </div>
+    </AppLayout>
   );
 };
 

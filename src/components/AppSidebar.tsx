@@ -1,7 +1,9 @@
-import { List, Calendar, CheckSquare } from 'lucide-react';
+import { List, Calendar, CheckSquare, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ViewMode } from '@/types/task';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 interface AppSidebarProps {
   currentView: ViewMode;
@@ -13,12 +15,18 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ currentView, onViewChange, taskCounts }: AppSidebarProps) {
+  const { signOut, user } = useAuth();
+
   const navItems = [
     { id: 'list' as ViewMode, label: 'Tasks', icon: List },
     { id: 'calendar' as ViewMode, label: 'Calendar', icon: Calendar },
   ];
 
   const progressPercent = taskCounts.total > 0 ? (taskCounts.completed / taskCounts.total) * 100 : 0;
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <motion.aside 
@@ -70,8 +78,8 @@ export function AppSidebar({ currentView, onViewChange, taskCounts }: AppSidebar
         ))}
       </nav>
 
-      <motion.div 
-        className="mt-auto pt-6 border-t border-border"
+      <motion.div
+        className="mt-auto pt-6 border-t border-border space-y-4"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -81,7 +89,7 @@ export function AppSidebar({ currentView, onViewChange, taskCounts }: AppSidebar
             Progress
           </div>
           <div className="flex items-baseline gap-1">
-            <motion.span 
+            <motion.span
               className="text-2xl font-bold text-foreground"
               key={taskCounts.completed}
               initial={{ scale: 1.2 }}
@@ -103,6 +111,23 @@ export function AppSidebar({ currentView, onViewChange, taskCounts }: AppSidebar
             />
           </div>
         </div>
+
+        {user && (
+          <div className="px-3 space-y-2">
+            <div className="text-xs text-muted-foreground truncate">
+              {user.email}
+            </div>
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              size="sm"
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
+        )}
       </motion.div>
     </motion.aside>
   );
