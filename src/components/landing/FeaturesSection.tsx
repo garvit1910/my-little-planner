@@ -1,8 +1,13 @@
-import { Timer, BarChart, Shield, Sparkles, Headphones } from 'lucide-react'
+import { Timer, BarChart, Shield, Sparkles, Headphones, CheckSquare } from 'lucide-react'
 import { FeatureCard } from './FeatureCard'
 import { motion } from 'framer-motion'
 
 const features = [
+  {
+    icon: CheckSquare,
+    title: 'Todolist and Tasks',
+    description: 'Manage your tasks with calendar integration'
+  },
   {
     icon: Timer,
     title: 'Focus & Pomodoro Mode',
